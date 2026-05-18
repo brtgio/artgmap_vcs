@@ -1,0 +1,262 @@
+Renderer.1 {
+    BackgroundColor = #F5F5F5;
+    BackgroundColorDisabled = #E6E6E6;
+    BackgroundColorDown = #EBEBEB;
+    BackgroundColorHover = white;
+    BorderColor = #3C3C3C;
+    BorderColorDisabled = #7D7D7D;
+    BorderColorDown = black;
+    BorderColorFocused = #1E1EB4;
+    BorderColorHover = black;
+    Borders = (1, 1, 1, 1);
+    TextColor = #3C3C3C;
+    TextColorDisabled = #7D7D7D;
+    TextColorDown = black;
+    TextColorHover = black;
+    Texture = None;
+    TextureDisabled = None;
+    TextureDown = None;
+    TextureDownFocused = None;
+    TextureDownHover = None;
+    TextureFocused = None;
+    TextureHover = None;
+}
+
+Renderer.2 {
+    BackgroundColor = #F5F5F5;
+    BackgroundColorDisabled = #E6E6E6;
+    BackgroundColorHover = white;
+    BorderColor = #3C3C3C;
+    BorderColorDisabled = #7D7D7D;
+    BorderColorFocused = #1E1EB4;
+    BorderColorHover = black;
+    Borders = (1, 1, 1, 1);
+    CheckColor = #3C3C3C;
+    CheckColorDisabled = #7D7D7D;
+    CheckColorHover = black;
+    TextColor = #3C3C3C;
+    TextColorDisabled = #7D7D7D;
+    TextColorHover = black;
+    TextDistanceRatio = 0.2;
+    TextureChecked = None;
+    TextureCheckedDisabled = None;
+    TextureCheckedFocused = None;
+    TextureCheckedHover = None;
+    TextureUnchecked = None;
+    TextureUncheckedDisabled = None;
+    TextureUncheckedFocused = None;
+    TextureUncheckedHover = None;
+}
+
+Renderer.3 {
+    BackgroundColor = transparent;
+    BorderColor = #3C3C3C;
+    Borders = (0, 0, 0, 0);
+    TextColor = #3C3C3C;
+    TextureBackground = None;
+
+    Scrollbar {
+        ArrowBackgroundColor = #F5F5F5;
+        ArrowBackgroundColorHover = white;
+        ArrowColor = #3C3C3C;
+        ArrowColorHover = black;
+        TextureArrowDown = None;
+        TextureArrowDownHover = None;
+        TextureArrowUp = None;
+        TextureArrowUpHover = None;
+        TextureThumb = None;
+        TextureThumbHover = None;
+        TextureTrack = None;
+        TextureTrackHover = None;
+        ThumbColor = #DCDCDC;
+        ThumbColorHover = #E6E6E6;
+        TrackColor = #F5F5F5;
+    }
+}
+
+Button.SaveA {
+    Position = (110, 220);
+    Renderer = &1;
+    Text = "Export Multiple";
+    TextSize = 13;
+}
+
+Picture.Picture1 {
+    Size = (32, 32);
+
+    Renderer {
+        Texture = "../icons/save.png" Smooth;
+        TransparentTexture = false;
+    }
+}
+
+Button.saveP {
+    Position = (170, 60);
+    Renderer = &1;
+    Size = (80, 20);
+    Text = "Save Pose";
+    TextSize = 13;
+}
+
+Button.saveS {
+    Position = (170, 100);
+    Renderer = &1;
+    Size = (86, 20);
+    Text = "Save Sonar";
+    TextSize = 13;
+}
+
+Button.saveDC {
+    Position = (170, 140);
+    Renderer = &1;
+    Size = (80, 20);
+    Text = "Save Deep";
+    TextSize = 13;
+}
+
+Button.saveF {
+    Position = (170, 180);
+    Renderer = &1;
+    Size = (80, 20);
+    Text = "Save Fuse";
+    TextSize = 13;
+}
+
+CheckBox.CheckBox1 {
+    Position = (140, 60);
+    Size = (17, 17);
+    TextSize = 13;
+
+    Renderer {
+        BackgroundColor = #F5F5F5;
+        BackgroundColorDisabled = #E6E6E6;
+        BackgroundColorHover = white;
+        BorderColor = #3C3C3C;
+        BorderColorDisabled = #7D7D7D;
+        BorderColorFocused = #1E1EB4;
+        BorderColorHover = black;
+        Borders = (1, 1, 1, 1);
+        CheckColor = #3C3C3C;
+        CheckColorDisabled = #7D7D7D;
+        CheckColorHover = black;
+        TextColor = #3C3C3C;
+        TextColorDisabled = #7D7D7D;
+        TextColorHover = black;
+        TextDistanceRatio = 0.2;
+        TextureChecked = None;
+        TextureCheckedDisabled = None;
+        TextureCheckedFocused = None;
+        TextureCheckedHover = None;
+        TextureUnchecked = None;
+        TextureUncheckedDisabled = None;
+        TextureUncheckedFocused = None;
+        TextureUncheckedHover = None;
+    }
+}
+
+CheckBox.CheckBox2 {
+    Position = (140, 100);
+    Renderer = &2;
+    Size = (17, 17);
+    TextSize = 13;
+}
+
+CheckBox.CheckBox3 {
+    Position = (140, 140);
+    Renderer = &2;
+    Size = (17, 17);
+    TextSize = 13;
+}
+
+CheckBox.CheckBox4 {
+    Position = (140, 180);
+    Renderer = &2;
+    Size = (17, 17);
+    TextSize = 13;
+}
+
+Label.Label1 {
+    Position = (0, 60);
+    ScrollbarPolicy = Automatic;
+    Size = (118, 20);
+    Text = "WMR Pose";
+    TextSize = 13;
+
+    Renderer {
+        BackgroundColor = transparent;
+        BorderColor = #3C3C3C;
+        Borders = (0, 0, 0, 0);
+        TextColor = #3C3C3C;
+        TextureBackground = None;
+
+        Scrollbar {
+            ArrowBackgroundColor = #F5F5F5;
+            ArrowBackgroundColorHover = white;
+            ArrowColor = #3C3C3C;
+            ArrowColorHover = black;
+            TextureArrowDown = None;
+            TextureArrowDownHover = None;
+            TextureArrowUp = None;
+            TextureArrowUpHover = None;
+            TextureThumb = None;
+            TextureThumbHover = None;
+            TextureTrack = None;
+            TextureTrackHover = None;
+            ThumbColor = #DCDCDC;
+            ThumbColorHover = #E6E6E6;
+            TrackColor = #F5F5F5;
+        }
+    }
+}
+
+Label.Label2 {
+    Position = (0, 100);
+    Renderer = &3;
+    ScrollbarPolicy = Automatic;
+    Size = (118, 20);
+    Text = "Sonar Map";
+    TextSize = 13;
+}
+
+Label.Label3 {
+    Position = (0, 140);
+    Renderer = &3;
+    ScrollbarPolicy = Automatic;
+    Size = (128, 20);
+    Text = "Deep Camera Map";
+    TextSize = 13;
+}
+
+Label.Label4 {
+    Position = (0, 180);
+    ScrollbarPolicy = Automatic;
+    Size = (118, 20);
+    Text = "Fuse Map";
+    TextSize = 13;
+
+    Renderer {
+        BackgroundColor = transparent;
+        BorderColor = #3C3C3C;
+        Borders = (0, 0, 0, 0);
+        TextColor = #3C3C3C;
+        TextureBackground = None;
+
+        Scrollbar {
+            ArrowBackgroundColor = #F5F5F5;
+            ArrowBackgroundColorHover = white;
+            ArrowColor = #3C3C3C;
+            ArrowColorHover = black;
+            TextureArrowDown = None;
+            TextureArrowDownHover = None;
+            TextureArrowUp = None;
+            TextureArrowUpHover = None;
+            TextureThumb = None;
+            TextureThumbHover = None;
+            TextureTrack = None;
+            TextureTrackHover = None;
+            ThumbColor = #DCDCDC;
+            ThumbColorHover = #E6E6E6;
+            TrackColor = #F5F5F5;
+        }
+    }
+}
