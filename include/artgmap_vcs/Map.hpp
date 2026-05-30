@@ -16,7 +16,9 @@
 #include <vector>
 #include <math.h>
 #include <SFML/Graphics.hpp>
-#include "artgslam_vcs_lidar/ViewController.hpp"
+#include "artgmap_vcs/ViewController.hpp"
+#include "geometry_msgs/msg/point32.hpp"
+
 
 /**
  * @class Map
@@ -171,6 +173,13 @@ public:
 
     void possProcessMap();
     void setGrid(const std::vector<std::vector<int>>& newGrid) ;
+    void updateMapFromTransformedScan(sf::Vector2i robotGridPose, const std::vector<geometry_msgs::msg::Point32>& transformedLidarPoints);
+    void bresenham(sf::Vector2i robotCell, sf::Vector2i laserCell);
+
+    sf::Vector2i getCellIndices(double realX, double realY) const;
+
+    void convertLogOddsToGrid();
+    void syncPointsFromGrid();
 
 private:
     ViewController& controller;           ///< Reference to the view controller for rendering
@@ -179,8 +188,19 @@ private:
 
     std::vector<double> posX, posY;       ///< Buffer of real-world x/y points
     std::vector<std::vector<int>> grid;   ///< 2D occupancy grid (0 = free, 1 = occupied, 's' = start, 'g' = goal)
+    std::vector<std::vector<float>> logOddsGrid; ///< 2d occupancy grid (keeping track of log odds instead of occupi and empty)
     std::vector<std::vector<int>> manualObsBuffer;///< Buffer to keep track of manual obstacles
+    
+    const float P_occupie = 0.7;
+    const float P_empty = 0.4;
+    /// @brief log-odds values calulated for probability 
+    const float L_prior = 0; //Initial log-odds value of a grid cell when grid empty
+    const float L_occupie = static_cast<float>(std::log(P_occupie/(1-P_occupie)));
+    const float L_empty = static_cast<float>(std::log(P_empty/(1-P_empty)));
 
+    /// Clamping thresholds to prevent numerical saturation/overflow
+    const float L_MIN   = -5.0f; //< Strongly free space
+    const float L_MAX   =  5.0f; //< Strongly occupied obstacle
     bool originSet = false;               ///< Flag to know if the origin is initialized
     double originX = 0.0, originY = 0.0;  ///< Optional offset for positioning
 

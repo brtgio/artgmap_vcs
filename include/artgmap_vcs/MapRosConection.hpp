@@ -16,10 +16,12 @@
 #include "std_msgs/msg/int32.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 #include <SFML/Graphics.hpp>
-#include "artgslam_vcs_lidar/AStar.hpp"
+#include "artgmap_vcs/AStar.hpp"
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
+
 #include <string>
 #include <vector>
 #include <mutex>   
@@ -54,9 +56,9 @@ public:
     const Pose& getPose() const {return lastPose;}
     bool getHasNewPose() const { return hasNewPose; }
     void resetHasNewPose() { hasNewPose = false; }
+    bool isRobotMoving() const {return moving;}
 
 private:
-std::mutex poseMutex;
     AStar& astar;
 
     // Velocity scaling and state
@@ -67,7 +69,7 @@ std::mutex poseMutex;
     float last_dt = 0.0;
     rclcpp::Time last_joy_time; 
     geometry_msgs::msg::Pose2D target_position;
-
+    bool moving = false;
     // Persistent Sensors - these hold the data to be rendered
     std::vector<geometry_msgs::msg::Point32> sonarPoints;
     std::vector<geometry_msgs::msg::Point32> kinnectPoints;
@@ -99,6 +101,7 @@ std::mutex poseMutex;
 
     rclcpp::Subscription<geometry_msgs::msg::Point32>::SharedPtr wmrpose_sub;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr qcar_pose_sub;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub;
 
     rclcpp::TimerBase::SharedPtr ram_timer;
 
@@ -115,6 +118,7 @@ std::mutex poseMutex;
     
     void wmrPoseReceiver(const geometry_msgs::msg::Point32::SharedPtr pose);
     void qcarPoseReceiver(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
+    void joint_sateCallback(const sensor_msgs::msg::JointState::SharedPtr joint);
 
     long getMemoryUsageKB();
     void publishMemoryUsage();

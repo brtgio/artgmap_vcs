@@ -1,4 +1,4 @@
-#include "artgslam_vcs_lidar/SaveMenu.hpp"
+#include "artgmap_vcs/SaveMenu.hpp"
 
 /**
  * @brief Constructs the SaveMenu window and loads GUI components.
@@ -15,7 +15,7 @@ SaveMenu::SaveMenu(Map &livemap, Map &kinnectmap, Map &fusionmap, UnicicleWmr &w
 : liveMap(livemap), kinectMap(kinnectmap), fusionMap(fusionmap), wmr(wmr), gui(saveWindow), saveWindow(sf::VideoMode(300, 250), "Save Menu")
 {
     /// Load form file path from the ROS package
-    std::string package_path = ament_index_cpp::get_package_share_directory("artgslam_vcs_lidar");
+    std::string package_path = ament_index_cpp::get_package_share_directory("artgmap_vcs");
     std::string formPath = package_path + "/assets/forms/saveMenu.txt";
 
     try {

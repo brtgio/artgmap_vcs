@@ -12,7 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 
-#include "artgslam_vcs_lidar/RightClickMapMenu.hpp"
+#include "artgmap_vcs/RightClickMapMenu.hpp"
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <iostream>
 
@@ -42,7 +42,7 @@ RightClickMapMenu::RightClickMapMenu(tgui::Gui& guiRef, GridMap& mapRef, Map& li
  */
 void RightClickMapMenu::setupWidgets()
 {
-    std::string package_path = ament_index_cpp::get_package_share_directory("artgslam_vcs_lidar");
+    std::string package_path = ament_index_cpp::get_package_share_directory("artgmap_vcs");
     std::string formPath = package_path + "/assets/forms/Right_Click_Menu.txt";
 
     try {

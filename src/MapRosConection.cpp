@@ -1,4 +1,4 @@
-#include "artgslam_vcs_lidar/MapRosConection.hpp"
+#include "artgmap_vcs/MapRosConection.hpp"
 #include <tf2/utils.h>
 #include <iostream>
 #include <tf2/utils.h>
@@ -32,6 +32,12 @@ MapRosConection::MapRosConection(AStar& astarRef)
         "/scan", 
         rclcpp::SensorDataQoS(),
         std::bind(&MapRosConection::lidarPointReceiver, this, std::placeholders::_1));
+
+    joint_state_sub = this->create_subscription<sensor_msgs::msg::JointState>(
+      "/qcar2_joint",  // topic name
+      10,              // queue size
+      std::bind(&MapRosConection::joint_sateCallback, this, std::placeholders::_1)
+    );
 
     last_joy_time = this->get_clock()->now();
 
@@ -74,24 +80,21 @@ void MapRosConection::wmrPoseReceiver(const geometry_msgs::msg::Point32::SharedP
 void MapRosConection::qcarPoseReceiver(
     const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 {
-    std::lock_guard<std::mutex> lock(lidarMutex);
 
     this->currentPose.x = msg->pose.position.x;
     this->currentPose.y = msg->pose.position.y;
 
     this->currentPose.theta =
         tf2::getYaw(msg->pose.orientation);
-
-    wmrPose.x = this->currentPose.x;
-    wmrPose.y = this->currentPose.y;
-    wmrPose.z = this->currentPose.theta;
+        // Debug: Show converted values
+    
+    lastPose.x = this->currentPose.x;
+    lastPose.y = this->currentPose.y;
+    lastPose.theta  = this->currentPose.theta;
 
     this->hasNewPose = true;
 
-    std::cout << "Received Pose: ("
-              << wmrPose.x << ", "
-              << wmrPose.y << ", "
-              << wmrPose.z << ")\n";
+
 }
 
 inline long MapRosConection::getMemoryUsageKB() {
@@ -143,36 +146,46 @@ void MapRosConection::lidarPointReceiver(const sensor_msgs::msg::LaserScan::Shar
 
     std::lock_guard<std::mutex> lock(lidarMutex);
     lidarPoints.clear(); 
-    // Adjusted reserve to account for the skip to save memory
-    lidarPoints.reserve(scan->ranges.size() / 5);
+    lidarPoints.reserve(scan->ranges.size() / 20);
 
-    const float sim_scale = 10.0f; // Necessary for Virtual QCar 2
-    const float tx_lidar_scaled = -0.012f * sim_scale;
-    const float ty_lidar_scaled = 0.0f * sim_scale;
-    const float rot_inversion = -1.0f; // Matches Quanser's 180-degree flip requirement
+    // Keep the exact structural inversion that kept your walls straight
+    const float rot_inversion = -1.0f; 
 
-    // Use i += 5 to skip 5 readings every iteration
+    // Use i += 20 to step through readings
     for (size_t i = 0; i < scan->ranges.size(); i += 20) {
         float range = scan->ranges[i];
 
-        if (std::isfinite(range) && range >= scan->range_min && range <= scan->range_max) {
+        // Enforce the 10 cm range threshold check here
+        if (std::isfinite(range) && range >= scan->range_min && range <= scan->range_max && range >= 0.1f) {
             
             float angle = scan->angle_min + (i * scan->angle_increment);
 
             float lx = range * std::cos(angle);
             float ly = range * std::sin(angle);
 
-            // Transforming local points with the 180-degree inversion
-            float bx = (rot_inversion * lx) + tx_lidar_scaled;
-            float by = (rot_inversion * ly) + ty_lidar_scaled;
+            // Restored the exact physical transformation that worked in your best map
+            float bx = (rot_inversion * lx);
+            float by = (rot_inversion * ly);
 
             geometry_msgs::msg::Point32 p;
-            // Projecting to Global Frame (Odom)
+            // Projecting to Global Frame (Odom) using your original working matrix equations
             p.x = (bx * std::cos(theta_odom)) - (by * std::sin(theta_odom)) + x_odom;
             p.y = (bx * std::sin(theta_odom)) + (by * std::cos(theta_odom)) + y_odom;
             p.z = 0.0f;
             
             lidarPoints.push_back(p);
+        }
+    }
+}
+
+void MapRosConection::joint_sateCallback(const sensor_msgs::msg::JointState::SharedPtr joint){
+    
+    moving = false;  
+    
+    for(size_t i = 0; i < joint->velocity.size(); i++){
+        if(joint->velocity[i] != 0.0){
+            moving = true;
+            break;
         }
     }
 }

@@ -12,8 +12,12 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <artgslam_vcs_lidar/Map.hpp>
+#include <artgmap_vcs/Map.hpp>
 #include <iostream> // For debugging/logging
+#include "artgmap_vcs/Constants.hpp"
+
+using namespace Constants;
+
 
 /**
  * @brief Constructs a Map object with specified grid size and resolution.
@@ -27,6 +31,7 @@ Map::Map(int size, double resolution, ViewController& controller)
 {
     /// Initialize grid to all free cells (0)
     grid.resize(gridSize, std::vector<int>(gridSize, 0));
+    logOddsGrid.resize(gridSize, std::vector<float>(gridSize,L_prior));
     manualObsBuffer.resize(gridSize, std::vector<int>(gridSize, 0));
     /// Clear stored real-world points
     posX.clear();
@@ -98,31 +103,31 @@ void Map::clearGrid()
  * @param yGrid Output vector of grid row indices.
  */
 void Map::xy2Grid(const std::vector<double>& x, const std::vector<double>& y,
-                      std::vector<int>& xGrid, std::vector<int>& yGrid)
+                 std::vector<int>& xGrid, std::vector<int>& yGrid) 
 {
-    if (x.size() != y.size() || !originSet) return;
-
     xGrid.clear();
     yGrid.clear();
-
-    int halfGrid = gridSize / 2;
+    xGrid.reserve(x.size());
+    yGrid.reserve(y.size());
+    
+    // CRITICAL FIX: Find the center of your grid map space.
+    // Since the robot is at 450, the center index is 450.
+    int centerCellX = gridSize / 2; 
+    int centerCellY = gridSize / 2; 
 
     for (size_t i = 0; i < x.size(); ++i) {
-        double shiftedX = x[i];
-        double shiftedY = y[i];
+        // 1. Shift the metric coordinates by adding the center offset 
+        // before dividing by the grid resolution factor
+        int cellX = centerCellX + static_cast<int>(std::round(x[i] / gridResolution));
+        int cellY = centerCellY + static_cast<int>(std::round(y[i] / gridResolution));
 
-        int col = static_cast<int>(std::round(shiftedX / gridResolution)) + halfGrid;
-        int row = -static_cast<int>(std::round(shiftedY / gridResolution)) + halfGrid;
-
-        // Ignore points outside grid bounds
-        if (col < 0 || col >= gridSize || row < 0 || row >= gridSize)
-            continue;
-
-        xGrid.push_back(col);
-        yGrid.push_back(row);
+        // 2. Strict boundary protection check before pushing indices to the raycaster
+        if (cellX >= 0 && cellX < gridSize && cellY >= 0 && cellY < gridSize) {
+            xGrid.push_back(cellX);
+            yGrid.push_back(cellY);
+        }
     }
 }
-
 /**
  * @brief Fills the grid with obstacles at specified grid indices.
  * Previous occupancy data is cleared, but start/goal are preserved.
@@ -422,5 +427,251 @@ void Map::setGrid(const std::vector<std::vector<int>>& newGrid) {
     }
     else {
         grid = newGrid; // asignación directa
+    }
+}
+
+// @brief Bresenham's algorithm (raycasting) it checks identifies every single discrete grid coordinate that the laser beam cleanly sliced through.
+void Map::bresenham(sf::Vector2i robotCell, sf::Vector2i laserCell)
+{
+    // Safety check: Ensure the starting point is valid
+    if (robotCell.x < 0 || robotCell.x >= gridSize || robotCell.y < 0 || robotCell.y >= gridSize) {
+        std::cout << "[Bresenham Debug] ERROR: Robot start position (" 
+                  << robotCell.x << ", " << robotCell.y << ") is OUT OF BOUNDS!" << std::endl;
+        return;
+    }
+
+    int x = robotCell.x;
+    int y = robotCell.y;
+
+    int dx = std::abs(laserCell.x - robotCell.x);
+    int dy = std::abs(laserCell.y - robotCell.y);
+
+    int sx = (robotCell.x < laserCell.x) ? 1 : -1;
+    int sy = (robotCell.y < laserCell.y) ? 1 : -1;
+
+    int err = dx - dy;
+
+    // Track statistics for this specific ray trace
+    int freeCellsUpdated = 0;
+    float initialStartLogOdds = logOddsGrid[y][x];
+
+    // -------------------------------------------------------------------------
+    // 1. Trace the ray path to apply FREE SPACE log-odds
+    // -------------------------------------------------------------------------
+    while (true) {
+        // Stop right before we touch the actual endpoint obstacle cell
+        if (x == laserCell.x && y == laserCell.y) {
+            break;
+        }
+
+        // Apply Log-Odds Free Space update inside grid boundaries
+        if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+            logOddsGrid[y][x] += L_empty;
+            if (logOddsGrid[y][x] < L_MIN) {
+                logOddsGrid[y][x] = L_MIN;
+            }
+            freeCellsUpdated++;
+        }
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y += sy;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. Apply OCCUPIED log-odds to the final obstacle destination cell
+    // -------------------------------------------------------------------------
+    bool endpointUpdated = false;
+    float finalObstacleLogOdds = 0.0f;
+
+    if (laserCell.x >= 0 && laserCell.x < gridSize && laserCell.y >= 0 && laserCell.y < gridSize) {
+        logOddsGrid[laserCell.y][laserCell.x] += L_occupie;
+        if (logOddsGrid[laserCell.y][laserCell.x] > L_MAX) {
+            logOddsGrid[laserCell.y][laserCell.x] = L_MAX;
+        }
+        endpointUpdated = true;
+        finalObstacleLogOdds = logOddsGrid[laserCell.y][laserCell.x];
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. High-Level Summary Print (One line per ray)
+    // -------------------------------------------------------------------------
+    std::cout << "[Bresenham Debug] Ray: Robot(" << robotCell.x << "," << robotCell.y << ") -> "
+              << "Laser(" << laserCell.x << "," << laserCell.y << ") | "
+              << "Free updated: " << freeCellsUpdated << " cells | "
+              << "Endpoint hit: " << (endpointUpdated ? "YES" : "OUT_OF_BOUNDS") 
+              << " (New LogOdds: " << finalObstacleLogOdds << ")" << std::endl;
+}
+
+void Map::updateMapFromTransformedScan(sf::Vector2i robotGridPose, const std::vector<geometry_msgs::msg::Point32>& transformedLidarPoints)
+{
+    
+    if (transformedLidarPoints.empty()) {
+        std::cout << "[Map Debug] WARNING: Received an empty laser scan message." << std::endl;
+        return;
+    }
+
+    // 1. Prepare batch vectors ONLY for the lidar endpoints
+    static std::vector<double> rawX;
+    static std::vector<double> rawY;
+    
+    rawX.clear();
+    rawY.clear();
+    rawX.reserve(transformedLidarPoints.size());
+    rawY.reserve(transformedLidarPoints.size());
+
+    for (const auto& point : transformedLidarPoints) {
+        rawX.push_back(point.x);
+        rawY.push_back(point.y);
+    }
+
+    // 2. Perform the coordinate transformation in ONE single batch operation
+    std::vector<int> gridX;
+    std::vector<int> gridY;
+    xy2Grid(rawX, rawY, gridX, gridY);
+
+    // --- DEBUG: Verify coordinate conversion output ---
+    std::cout << "[Map Debug] After xy2Grid -> Converted Endpoints (X size: " 
+              << gridX.size() << ", Y size: " << gridY.size() << ")" << std::endl;
+
+    // Check for the Early Return Trap
+    if (gridX.empty() || gridY.empty()) {
+        std::cout << "[Map Debug] CRITICAL: Early exit triggered! Converted vectors are EMPTY. "
+                  << "Check if your map size/resolution drops points outside its bounds." << std::endl;
+        return;
+    }
+
+    // 3. Run Bresenham safely from index 0 up to the end of our valid converted points
+    size_t validPointsCount = std::min(gridX.size(), gridY.size());
+    size_t tracedRays = 0;
+
+    // Print out a sample coordinate to make sure the transformation math makes sense
+    if (validPointsCount > 0) {
+        std::cout << "[Map Debug] Sample mapping trace: Real(" << rawX[0] << ", " << rawY[0] 
+                  << ") -> Grid(" << gridX[0] << ", " << gridY[0] << ")" << std::endl;
+    }
+
+    for (size_t i = 0; i < validPointsCount; ++i) {
+        sf::Vector2i laserCell(gridX[i], gridY[i]);
+
+        // Boundary safety check for the raycaster
+        if (laserCell.x >= 0 && laserCell.x < gridSize && laserCell.y >= 0 && laserCell.y < gridSize) {
+            this->bresenham(robotGridPose, laserCell);
+            tracedRays++;
+        }
+    }
+    
+    std::cout << "[Map Debug] Successfully traced " << tracedRays << " out of " << validPointsCount << " rays inside grid boundaries." << std::endl;
+
+    // 4. Convert and log final grid state changes
+    convertLogOddsToGrid();
+
+    // Quick structural metric to see if cells are actually changing
+    int occupiedCount = 0;
+    for (int r = 0; r < gridSize; ++r) {
+        for (int c = 0; c < gridSize; ++c) {
+            if (grid[r][c] == 1) occupiedCount++;
+        }
+    }
+    std::cout << "[Map Debug] Convert complete. Total active obstacles ('1') inside rendering grid: " << occupiedCount << std::endl;
+}
+
+sf::Vector2i Map::getCellIndices(double realX, double realY) const{
+
+    double offset = (MAP_SIZE_CELLS * DEFAULT_METERS_PER_CELL) / 2.0; // Centered origin offset
+
+    int col = static_cast<int>(std::floor((realX + offset) / gridResolution));
+    int row = static_cast<int>(std::floor((realY + offset) / gridResolution));
+
+    // Keep indices safely inside the memory grid boundaries
+    col = std::clamp(col, 0, MAP_SIZE_CELLS - 1);
+    row = std::clamp(row, 0, MAP_SIZE_CELLS - 1);
+
+    return sf::Vector2i(col, row);
+}
+
+void Map::convertLogOddsToGrid() {
+    // Ensure the main grid matches the dimensions of the logOddsGrid
+    if (grid.size() != logOddsGrid.size()) {
+        grid.assign(gridSize, std::vector<int>(gridSize, 0));
+    }
+
+    // Store current start and goal positions
+    sf::Vector2i savedStart = startIndex;
+    sf::Vector2i savedGoal = goalIndex;
+    
+    for (int r = 0; r < gridSize; ++r) {
+        for (int c = 0; c < gridSize; ++c) {
+            // Check if this is a start or goal cell from the stored indices
+            bool isStartCell = (savedStart.x == c && savedStart.y == r);
+            bool isGoalCell = (savedGoal.x == c && savedGoal.y == r);
+            
+            if (isStartCell) {
+                grid[r][c] = 's';
+                continue;
+            }
+            
+            if (isGoalCell) {
+                grid[r][c] = 'g';
+                continue;
+            }
+            
+            // Check if this is a manual obstacle (preserve it)
+            if (r < manualObsBuffer.size() && c < manualObsBuffer[0].size() && 
+                manualObsBuffer[r][c] == 1) {
+                grid[r][c] = 1;
+                continue;
+            }
+            
+            // Convert log-odds to occupancy probability
+            float lValue = logOddsGrid[r][c];
+            float probability = 1.0f / (1.0f + std::exp(-lValue));
+            
+            // Apply threshold
+            if (probability > 0.5f) {
+                grid[r][c] = 1;  // Occupied
+            } else {
+                grid[r][c] = 0;  // Free
+            }
+        }
+    }
+    
+    // Restore indices
+    startIndex = savedStart;
+    goalIndex = savedGoal;
+    
+    // CRITICAL: Sync the point storage with the updated grid
+    syncPointsFromGrid();
+}
+/**
+ * @brief Synchronizes the point storage (posX, posY) with the current grid.
+ * Converts occupied grid cells back to world coordinates.
+ */
+void Map::syncPointsFromGrid() {
+    posX.clear();
+    posY.clear();
+    
+    // Reserve space for efficiency (max possible occupied cells)
+    posX.reserve(gridSize * gridSize);
+    posY.reserve(gridSize * gridSize);
+    
+    for (int row = 0; row < gridSize; ++row) {
+        for (int col = 0; col < gridSize; ++col) {
+            // Only save occupied cells (1), not start/goal
+            if (grid[row][col] == 1) {
+                // Convert grid indices back to world coordinates
+                // This is the inverse of your xy2Grid transformation
+                double worldX = (col - gridSize/2) * gridResolution;
+                double worldY = (row - gridSize/2) * gridResolution;
+                posX.push_back(worldX);
+                posY.push_back(worldY);
+            }
+        }
     }
 }

@@ -7,8 +7,8 @@
 #include <csignal>
 #include <rclcpp/rclcpp.hpp>
 #include <SFML/Graphics.hpp>
-#include "artgslam_vcs_lidar/MapViewer.hpp"
-#include "artgslam_vcs_lidar/Constants.hpp"
+#include "artgmap_vcs/MapViewer.hpp"
+#include "artgmap_vcs/Constants.hpp"
 
 static volatile sig_atomic_t g_shutdown_requested = 0;
 

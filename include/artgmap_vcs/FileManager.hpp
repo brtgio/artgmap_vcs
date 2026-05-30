@@ -20,7 +20,7 @@
 #include <iostream>
 #include <iomanip>         // For std::setprecision
 #include "Map.hpp"
-#include "artgslam_vcs_lidar/GridMap.hpp"
+#include "artgmap_vcs/GridMap.hpp"
 #include "ViewController.hpp"
 #include "tinyfiledialogs.h"
 

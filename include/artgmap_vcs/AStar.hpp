@@ -18,9 +18,9 @@
 #include <queue>
 #include <SFML/Graphics.hpp>
 #include <geometry_msgs/msg/point32.hpp>
-#include "artgslam_vcs_lidar/Map.hpp"
-#include "artgslam_vcs_lidar/Node.hpp"
-#include "artgslam_vcs_lidar/GridMap.hpp"
+#include "artgmap_vcs/Map.hpp"
+#include "artgmap_vcs/Node.hpp"
+#include "artgmap_vcs/GridMap.hpp"
 
 /// \class AStar
 /// \brief This class handles the A* algorithm for path planning.

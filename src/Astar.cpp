@@ -12,7 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 
-#include "artgslam_vcs_lidar/AStar.hpp"
+#include "artgmap_vcs/AStar.hpp"
 #include <iostream>
 #include <cmath>
 #include <algorithm> // std::reverse

@@ -12,8 +12,8 @@
  * -----------------------------------------------------------------------------
  */
 
-#include "artgslam_vcs_lidar/GridMap.hpp"
-#include "artgslam_vcs_lidar/AStar.hpp"
+#include "artgmap_vcs/GridMap.hpp"
+#include "artgmap_vcs/AStar.hpp"
 #include <iostream>
 
 /**

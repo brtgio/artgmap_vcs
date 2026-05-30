@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include "artgslam_vcs_lidar/Map.hpp"
+#include "artgmap_vcs/Map.hpp"
 
 class MapFusion{
 

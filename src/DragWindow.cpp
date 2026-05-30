@@ -1,4 +1,4 @@
-#include "artgslam_vcs_lidar/DragWindow.hpp"
+#include "artgmap_vcs/DragWindow.hpp"
 #include <ament_index_cpp/get_package_share_directory.hpp>
 /**
  * @brief Constructor that initialize DragWindow a window to view the position of robot in real time 
@@ -8,7 +8,7 @@
 DragWindow::DragWindow(tgui::Gui &guiRef, UnicicleWmr &wmrRef)
 : gui(guiRef), wmr(wmrRef), isDraging(false)
 {
-        std::string package_path = ament_index_cpp::get_package_share_directory("artgslam_vcs_lidar");
+        std::string package_path = ament_index_cpp::get_package_share_directory("artgmap_vcs");
     std::string formPath = package_path + "/assets/forms/DragWindow.txt";
 
     try {

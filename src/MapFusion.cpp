@@ -1,4 +1,4 @@
-#include "artgslam_vcs_lidar/MapFusion.hpp"
+#include "artgmap_vcs/MapFusion.hpp"
 
 MapFusion::MapFusion(int size)
 {

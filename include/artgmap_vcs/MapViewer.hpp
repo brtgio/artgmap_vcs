@@ -14,20 +14,20 @@
  */
 
 
-#include "artgslam_vcs_lidar/MenuBar.hpp"
-#include "artgslam_vcs_lidar/FileManager.hpp"
-#include "artgslam_vcs_lidar/MapRosConection.hpp"
-#include "artgslam_vcs_lidar/ViewController.hpp"
-#include "artgslam_vcs_lidar/RobotCreator.hpp"
-#include "artgslam_vcs_lidar/UnicicleWmr.hpp"
-#include "artgslam_vcs_lidar/Map.hpp"
-#include "artgslam_vcs_lidar/RightClickMapMenu.hpp"
-#include "artgslam_vcs_lidar/AStar.hpp"
-#include "artgslam_vcs_lidar/DragWindow.hpp"
-#include "artgslam_vcs_lidar/SaveMenu.hpp"
-#include "artgslam_vcs_lidar/GridMap.hpp"
-#include "artgslam_vcs_lidar/MapFusion.hpp"
-#include "artgslam_vcs_lidar/Pose.hpp"
+#include "artgmap_vcs/MenuBar.hpp"
+#include "artgmap_vcs/FileManager.hpp"
+#include "artgmap_vcs/MapRosConection.hpp"
+#include "artgmap_vcs/ViewController.hpp"
+#include "artgmap_vcs/RobotCreator.hpp"
+#include "artgmap_vcs/UnicicleWmr.hpp"
+#include "artgmap_vcs/Map.hpp"
+#include "artgmap_vcs/RightClickMapMenu.hpp"
+#include "artgmap_vcs/AStar.hpp"
+#include "artgmap_vcs/DragWindow.hpp"
+#include "artgmap_vcs/SaveMenu.hpp"
+#include "artgmap_vcs/GridMap.hpp"
+#include "artgmap_vcs/MapFusion.hpp"
+#include "artgmap_vcs/Pose.hpp"
 #include <SFML/Graphics.hpp>
 #include <TGUI/Backend/SFML-Graphics.hpp>
 

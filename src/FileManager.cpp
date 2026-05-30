@@ -12,7 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 
-#include "artgslam_vcs_lidar/FileManager.hpp"
+#include "artgmap_vcs/FileManager.hpp"
 
 /**
  * @brief Constructor that stores a reference to the GridMap instance for interaction.

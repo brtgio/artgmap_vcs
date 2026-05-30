@@ -12,8 +12,8 @@
  * -----------------------------------------------------------------------------
  */
 
-#include "artgslam_vcs_lidar/UnicicleWmr.hpp"
-
+#include "artgmap_vcs/UnicicleWmr.hpp"
+#include <iostream>
 /**
  * @brief Constructor.
  * 
@@ -113,7 +113,7 @@ void UnicicleWmr::setPose(float x, float y, float theta)
 {
     this->x = x;
     this->y = y;
-    this->theta = theta;
+    this->theta = theta;    
 
 }
 

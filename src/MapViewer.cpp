@@ -12,11 +12,12 @@
  * -----------------------------------------------------------------------------
  */
 
-#include "artgslam_vcs_lidar/MapViewer.hpp"
-#include "artgslam_vcs_lidar/Constants.hpp"
+#include "artgmap_vcs/MapViewer.hpp"
+#include "artgmap_vcs/Constants.hpp"
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <iostream>
 using namespace Constants;
 /**
  * @brief Constructs a MapViewer instance.
@@ -240,25 +241,15 @@ void MapViewer::update()
     /// Updates the coordinate display in the status bar.
     menu.updateCoordinates(oss.str());
 
-
     /// Updates the robot's on-screen position using the latest pose, only if a new pose is available.
+    const Pose& pose = rosconnect.getPose();
+    float x = pose.x;
+    float y = pose.y;
+    float theta = pose.theta;
     
-        const Pose& pose = rosconnect.getPose();
-        float x = pose.x;
-        float y = pose.y;
-        float theta = pose.theta;
-        //std::cout << "Received Pose: (" << x << ", " << y << ", " << theta << ")\n";
-        wmr.setPose(x, y, theta);
-
- 
-
-        map.setStartOnflyFromReal(pose.x,-pose.y);
-        kinnectmap.setStartOnfly(wmrGridPose);
-        livemap.setStartOnfly(wmrGridPose);
-        fusionmap.setStartOnfly(wmrGridPose);
-    
-    
-
+    // Unified clean conversion function
+    sf::Vector2i gridPose = livemap.getCellIndices(x, y);
+    wmr.setPose(x, y, theta);
 
     // ----------------------------------------------------------------------
     /// @brief Live Mode: Handles real-time sensor updates and live mapping.
@@ -266,39 +257,20 @@ void MapViewer::update()
     if (menu.getLiveMode()) {
 
         map.setActive(false);
+        if(rosconnect.isRobotMoving()){
 
-        //livemap.clearPoints();   /**< Clears existing sonar point cloud. */
-        //livemap.clearGrid();     /**< Clears live occupancy grid.       */
+                livemap.setStartOnfly(gridPose);
 
-        kinnectmap.clearPoints(); /**< Clears Kinect point cloud.        */
-        kinnectmap.clearGrid();   /**< Clears Kinect occupancy grid.     */
+            /// 1. Run the new modular Log-Odds Raycaster
+            const auto& lidar = rosconnect.getLidarPoints();
+        
+        
+            livemap.updateMapFromTransformedScan(gridPose, lidar);
 
-        /// Adds lidar points to the live map.
-/// Adds lidar points to the live map transformed to the Fixed Frame.
-const auto& lidar = rosconnect.getLidarPoints();
-// robot pose is no longer needed for the point-by-point calculation here 
-// because p.x and p.y are already in the Fixed Frame (Global).
-
-for (const auto& p : lidar) {
-    // The points p.x and p.y now represent global coordinates 
-    // calculated via tf2 in the receiver callback.
-    float globalX = p.x;
-    float globalY = p.y;
-
-    // Add the global point directly to the live map.
-    // If your SFML/Visualization logic requires a Y-flip for screen coordinates:
-    livemap.addPoint(globalX, globalY); 
-}
-
-        /// Adds Kinect points to the Kinect live map.
-        const auto& kinnect_p = rosconnect.getKinnectPoints();
-        for (const auto& p : kinnect_p) {
-            kinnectmap.addPoint(p.x, p.y);
         }
 
-        /// Builds occupancy grids using the updated point clouds.
-        livemap.updateGridFromPoints();
-        kinnectmap.updateGridFromPoints();
+
+
  
     } else {
         /// Disables live mode and restores static map rendering.
@@ -322,12 +294,9 @@ for (const auto& p : lidar) {
         }
     }
 
-
-
     /// Updates drag window/tool state.
     dragwin.update();
 }
-
 
 /**
  * @brief Processes SFML window events.
@@ -436,7 +405,7 @@ void MapViewer::render()
         if (livemap.getIsActive()) {
             const auto& gridLive = livemap.getGrid();
             if (!(gridLive.empty() || gridLive[0].empty())) {
-                livemap.drawLiveMap(window, controller.getPixelsPerMeter(), sf::Color::Yellow);
+                livemap.drawLiveMap(window, controller.getPixelsPerMeter(),sf::Color::Yellow);
             } else {
             }
         }

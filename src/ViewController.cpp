@@ -12,7 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 
-#include "artgslam_vcs_lidar/ViewController.hpp"
+#include "artgmap_vcs/ViewController.hpp"
 #include <cmath>
 #include <iostream>
 #include "ament_index_cpp/get_package_share_directory.hpp"
@@ -43,7 +43,7 @@ ViewController::ViewController(sf::RenderWindow& win, float metersPerCell_, floa
 
     
     /** Load font from ROS package assets for axis labels */
-    std::string package_path = ament_index_cpp::get_package_share_directory("artgslam_vcs_lidar");
+    std::string package_path = ament_index_cpp::get_package_share_directory("artgmap_vcs");
     std::string fontPath = package_path + "/assets/fonts/NotoSansMath-Regular.ttf";
 
     fontLoaded = font.loadFromFile(fontPath);
@@ -195,12 +195,7 @@ void ViewController::drawGrid(sf::RenderTarget& target) {
     static int frameCounter = 0;
     frameCounter++;
 
-    if (frameCounter % 60 == 0) { // print ~once per second at 60 FPS
-        std::cout << "[Grid Debug] Lines: " << lineCount
-                  << " | Vertices: " << lines.getVertexCount()
-                  << " | mapSizeCells: " << MAP_SIZE_CELLS
-                  << std::endl;
-    }
+    
 }
 
 /**

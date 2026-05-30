@@ -19,8 +19,8 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <iostream>
 #include <regex>
-#include "artgslam_vcs_lidar/Map.hpp"
-#include "artgslam_vcs_lidar/GridMap.hpp"
+#include "artgmap_vcs/Map.hpp"
+#include "artgmap_vcs/GridMap.hpp"
 /**
  * @class RightClickMapMenu
  * @brief Manages a contextual right-click menu displayed on top of a map.

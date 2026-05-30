@@ -8,9 +8,9 @@
 #include <functional>
 #include <iostream>
 #include <fstream>
-#include "artgslam_vcs_lidar/Map.hpp"
-#include "artgslam_vcs_lidar/UnicicleWmr.hpp"
-#include "artgslam_vcs_lidar/tinyfiledialogs.h"
+#include "artgmap_vcs/Map.hpp"
+#include "artgmap_vcs/UnicicleWmr.hpp"
+#include "artgmap_vcs/tinyfiledialogs.h"
 
 class SaveMenu {
 private:

@@ -22,7 +22,7 @@
 #include <regex>
 #include <cctype>
 
-#include "artgslam_vcs_lidar/UnicicleWmr.hpp"
+#include "artgmap_vcs/UnicicleWmr.hpp"
 
 /**
  * @class RobotCreator

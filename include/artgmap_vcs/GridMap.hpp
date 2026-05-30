@@ -16,7 +16,7 @@
 #include <vector>
 #include <cmath>
 #include <SFML/Graphics.hpp>
-#include "artgslam_vcs_lidar/ViewController.hpp"
+#include "artgmap_vcs/ViewController.hpp"
 
 /**
  * @class GridMap
